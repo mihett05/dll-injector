@@ -3,54 +3,20 @@
 #include <windows.h>
 #include <TlHelp32.h>
 #include <errno.h>
+#include "address_list.h"
 
-
-BOOL set_value(HANDLE hProc, char find_value, char need_value)
-{
-    SYSTEM_INFO info;
-    GetSystemInfo(&info);
-
-    DWORD dw_start = (DWORD)info.lpMinimumApplicationAddress;
-    DWORD dw_max = (DWORD)info.lpMaximumApplicationAddress;
-    
-    DWORD last_address = dw_start;
-
-    while (last_address < dw_max)
-    {
-        MEMORY_BASIC_INFORMATION mbi;
-        VirtualQueryEx(hProc, last_address, &mbi, sizeof(MEMORY_BASIC_INFORMATION));
-
-        if (mbi.State == MEM_COMMIT &&
-            mbi.Protect != PAGE_READONLY &&
-            mbi.Protect != PAGE_EXECUTE_READ &&
-            mbi.Protect != PAGE_GUARD &&
-            mbi.Protect != PAGE_NOACCESS
-            )
-        {
-            char* buff = (char*)malloc(info.dwPageSize);
-            if (ReadProcessMemory(hProc, last_address, buff, info.dwPageSize, NULL))
-            {
-                for (size_t i = 0; i < info.dwPageSize; i++)
-                {
-                    if (buff[i] == find_value)
-                    {
-                        char data = need_value;
-                        WriteProcessMemory(hProc, last_address + i, &data, sizeof(char), NULL);
-                    }
-                }
-            }
-            free(buff);
-        }
-        last_address += info.dwPageSize;
-    }
-}
-
-void attach()
+void attach(HINSTANCE hInst)
 {
     HANDLE hProc = GetCurrentProcess();
-    if (set_value(hProc, 42, 90)) {
-        printf("\nUpdated!\n");
-    };
+
+    address_list list;
+    list.count = 0;
+
+    find_addresses(hProc, 42, &list);
+    for (size_t i = 0; i < list.count; i++)
+    {
+        set_value(hProc, list.list[i], 90);
+    }
     CloseHandle(hProc);
 }
 
@@ -62,7 +28,7 @@ BOOL APIENTRY DllMain(HINSTANCE hInst     /* Library instance handle. */ ,
     switch(reason)
     {
     case DLL_PROCESS_ATTACH:
-        attach();
+        attach(hInst);
         break;
     case DLL_PROCESS_DETACH:
         break;
