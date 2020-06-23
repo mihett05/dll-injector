@@ -4,7 +4,5 @@
 extern "C" __declspec(dllexport)
 
 __declspec(dllexport)
-BOOL APIENTRY DllMain(HINSTANCE hInst     /* Library instance handle. */ ,
-                        DWORD reason        /* Reason this function is being called. */ ,
-                        LPVOID reserved     /* Not used. */ );
+BOOL APIENTRY DllMain(HINSTANCE hInst, DWORD reason, LPVOID reserved);
 #endif

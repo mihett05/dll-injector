@@ -5,7 +5,6 @@
 
 typedef struct {
     DWORD list[4096];
-    size_t size;
     DWORD count;
 } address_list;
 

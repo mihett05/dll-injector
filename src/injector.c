@@ -43,11 +43,11 @@ void clear_list(int start_y, int count)
 
 int get_pid(char* process_name)
 {
-    int refresh = 0;
+    BOOL refresh = 0;
     COORD coord = get_cursor_coord();
     coord.Y = coord.Y + 3;
 
-    while (1)
+    while (TRUE)
     {
         int pids[256];
         int pids_count = 0;
@@ -68,7 +68,7 @@ int get_pid(char* process_name)
         } while(Process32Next(hSnapshot, &peProcessEntry));
         CloseHandle(hSnapshot);
 
-        if (pids_count > 0)
+        if (pids_count > 1)
         {
             if (!refresh)
             {
@@ -134,6 +134,10 @@ int get_pid(char* process_name)
                 }
             }
         }
+        else if (pids_count == 1)
+        {
+            return pids[0];
+        }
         else
         {
             printf("Not found any processes with name \"%s\"", process_name);
@@ -142,7 +146,7 @@ int get_pid(char* process_name)
     }
 }
 
-_Bool inject(int pid, char* dll_name)
+BOOL inject(int pid, char* dll_name)
 {
     HANDLE hProc = OpenProcess(PROCESS_ALL_ACCESS, 0, pid);
     if (hProc)
@@ -170,8 +174,10 @@ _Bool inject(int pid, char* dll_name)
 int main(int argc, char const* argv[])
 {
     hCon = GetStdHandle(STD_OUTPUT_HANDLE);
+    
     CONSOLE_SCREEN_BUFFER_INFO info;
     GetConsoleScreenBufferInfo(hCon, &info);
+
     width = info.srWindow.Right - info.srWindow.Left + 1;
     height = info.srWindow.Bottom - info.srWindow.Top + 1;
 
