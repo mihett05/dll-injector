@@ -3,7 +3,6 @@
 #include <string.h>
 #include <windows.h>
 #include <TlHelp32.h>
-#include <memoryapi.h>
 
 HANDLE hCon;
 int width, height;
